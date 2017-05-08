@@ -5,37 +5,41 @@ class Spider:
     """
         [Config]:
             require params: (url, method)
-            choice params: (params, pattern)
+            choice params: (optional_config: pattern, params, headers, proxies)
         [Usage]:
             # init
-                test = Spider('http://www.baidu.com', 'get', {'key': 'value'}, r'<title>(.+)</title>')
+                test = Spider(url = 'http://www.baidu.com', method = 'get', optional_config = {'params': {'key': 'value'}, 'pattern': r'<title>(.+)</title>'})
             # send request
                 test.get_info()
     """
-    def __init__(self, url, method, params = None, pattern = None):
+    def __init__(self, url, method, optional_config = None):
         self.url = url
         self.method = method
-        self.params = params
-        self.pattern = pattern
+        self.optional_config = optional_config
     def get_info(self):
-        def get():
-            if self.params:
-                r = requests.get(url = self.url, params = self.params)
-            else:
-                r = requests.get(url = self.url)
-            return r
-        def post():
-            if self.params:
-                r = requests.post(url = self.url, data = self.params)
-            else:
-                r = requests.post(url = self.url)
-        switcher = {'get': get(), 'post': post()}
+        url = self.url
+        method = self.method
+        params = None
+        pattern = None
+        headers = None
+        proxies = None
+        response = None
+        origin_data = None
+        if isinstance(self.optional_config, dict):
+            params = self.optional_config.get('params', None)
+            pattern = self.optional_config.get('pattern', None)
+            headers = self.optional_config.get('headers', None)
+            proxies = self.optional_config.get('proxies', None)
         try:
-            response = switcher.get(self.method, 'none')
-            p = self.pattern
-            origin_data = response.text
-            if self.pattern:
-                r = re.findall(p, origin_data)
+            if method == 'get':
+                print(url, method, params, headers, proxies)
+                response = requests.get(url = url, params = params, headers = headers, proxies = proxies)
+            elif method == 'post':
+                response = requests.post(url = url, params = params, headers = headers, proxies = proxies)
+            if response:
+                origin_data = response.text
+            if pattern and origin_data:
+                r = re.findall(pattern, origin_data)
                 return r
             else:
                 return origin_data
@@ -44,3 +48,7 @@ class Spider:
             return 'null'
         finally:
             print('************finish***********')
+# test code
+if __name__ == '__main__':
+    test = Spider(url = 'http://www.bilibili.com', method = 'get', optional_config = {'pattern': r'<title>(.+)</title>'})
+    print(test.get_info())
