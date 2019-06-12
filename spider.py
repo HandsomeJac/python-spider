@@ -21,14 +21,14 @@ class Spider:
         method = self.method
         params = None
         pattern = None
-        headers = None
+        headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'}
         proxies = None
         response = None
         origin_data = None
         if isinstance(self.optional_config, dict):
             params = self.optional_config.get('params', None)
             pattern = self.optional_config.get('pattern', None)
-            headers = self.optional_config.get('headers', None)
+            headers.update(self.optional_config.get('headers', {}))
             proxies = self.optional_config.get('proxies', None)
         try:
             if method == 'get':
